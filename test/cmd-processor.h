@@ -47,7 +47,7 @@ volatile struct
     uint8_t m_entry[ cmdQ_SIZE ];
 } cmdQ;
 
-typedef void (*fp_menu_handler)(void);
+typedef ATCA_STATUS (*fp_menu_handler)(void);
 
 typedef struct
 {

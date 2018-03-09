@@ -42,7 +42,7 @@ static const uint8_t nist_hash_msg1[] = "abc";
 static const uint8_t nist_hash_msg2[] = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
 static const uint8_t nist_hash_msg3[] = "a";
 
-int atca_crypto_sw_tests(void)
+ATCA_STATUS atca_crypto_sw_tests(void)
 {
     UnityBegin("atca_crypto_sw_tests.c");
 

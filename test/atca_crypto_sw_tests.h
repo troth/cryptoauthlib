@@ -32,9 +32,10 @@
 #ifndef ATCA_CRYPTO_TESTS_H_
 #define ATCA_CRYPTO_TESTS_H_
 
+#include "atca_status.h"
 #include "unity.h"
 
-int atca_crypto_sw_tests(void);
+ATCA_STATUS atca_crypto_sw_tests(void);
 
 void test_atcac_sw_sha1_nist1(void);
 void test_atcac_sw_sha1_nist2(void);

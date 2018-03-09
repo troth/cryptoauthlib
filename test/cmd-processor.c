@@ -72,10 +72,10 @@
 
 static ATCA_STATUS set_test_config(ATCADeviceType deviceType);
 #ifdef TEST_CD
-static int certdata_unit_tests(void);
+static ATCA_STATUS certdata_unit_tests(void);
 #endif
 #ifdef TEST_CIO
-static int certio_unit_tests(void);
+static ATCA_STATUS certio_unit_tests(void);
 #endif
 static ATCA_STATUS is_device_locked(uint8_t zone, bool *isLocked);
 static ATCA_STATUS lock_status(void);
@@ -84,29 +84,29 @@ static ATCA_STATUS lock_data_zone(void);
 static ATCA_STATUS get_info(uint8_t *revision);
 static ATCA_STATUS get_serial_no(uint8_t *sernum);
 static ATCA_STATUS do_randoms(void);
-static void read_config(void);
-static void lock_config(void);
-static void lock_data(void);
-static void info(void);
-static void sernum(void);
-static void discover(void);
-static void select_device(ATCADeviceType device_type);
+static ATCA_STATUS read_config(void);
+static ATCA_STATUS lock_config(void);
+static ATCA_STATUS lock_data(void);
+static ATCA_STATUS info(void);
+static ATCA_STATUS sernum(void);
+static ATCA_STATUS discover(void);
+static ATCA_STATUS select_device(ATCADeviceType device_type);
 static int run_test(void* fptest);
-static void select_204(void);
-static void select_108(void);
-static void select_508(void);
-static void select_608(void);
-static void run_basic_tests(void);
-static void run_unit_tests(void);
-static void run_otpzero_tests(void);
-static void run_helper_tests(void);
-static void help(void);
+static ATCA_STATUS select_204(void);
+static ATCA_STATUS select_108(void);
+static ATCA_STATUS select_508(void);
+static ATCA_STATUS select_608(void);
+static ATCA_STATUS run_basic_tests(void);
+static ATCA_STATUS run_unit_tests(void);
+static ATCA_STATUS run_otpzero_tests(void);
+static ATCA_STATUS run_helper_tests(void);
+static ATCA_STATUS help(void);
 static int parse_cmd(const char *command);
-static void run_all_tests(void);
+static ATCA_STATUS run_all_tests(void);
 static ATCA_STATUS set_chip_mode(uint8_t i2c_user_extra_add, uint8_t ttl_enable, uint8_t watchdog, uint8_t clock_divider);
-static void set_clock_divider_m0(void);
-static void set_clock_divider_m1(void);
-static void set_clock_divider_m2(void);
+static ATCA_STATUS set_clock_divider_m0(void);
+static ATCA_STATUS set_clock_divider_m1(void);
+static ATCA_STATUS set_clock_divider_m2(void);
 
 static const char* argv[] = { "manual", "-v" };
 static t_menu_info mas_menu_info[] =
@@ -124,15 +124,15 @@ static t_menu_info mas_menu_info[] =
     { "otpzero",  "Zero Out OTP Zone",                              run_otpzero_tests                   },
     { "util",     "Run Helper Function Tests",                      run_helper_tests                    },
     { "readcfg",  "Read the Config Zone",                           read_config                         },
-    { "lockstat", "Zone Lock Status",                               (fp_menu_handler)lock_status        },
+    { "lockstat", "Zone Lock Status",                               lock_status                         },
     { "lockcfg",  "Lock the Config Zone",                           lock_config                         },
     { "lockdata", "Lock Data and OTP Zones",                        lock_data                           },
-    { "rand",     "Generate Some Random Numbers",                   (fp_menu_handler)do_randoms         },
+    { "rand",     "Generate Some Random Numbers",                   do_randoms                          },
     #ifdef TEST_CD
-    { "cd",       "Run Unit Tests on Cert Data",                    (fp_menu_handler)certdata_unit_tests},
+    { "cd",       "Run Unit Tests on Cert Data",                    certdata_unit_tests                 },
     #endif
     #ifdef TEST_CIO
-    { "cio",      "Run Unit Test on Cert I/O",                      (fp_menu_handler)certio_unit_tests  },
+    { "cio",      "Run Unit Test on Cert I/O",                      certio_unit_tests                   },
     #endif
     #ifdef TEST_SW_CRYPTO
     { "crypto",   "Run Unit Tests for Software Crypto Functions",   atca_crypto_sw_tests                },
@@ -218,7 +218,7 @@ static int parse_cmd(const char *command)
     return ATCA_SUCCESS;
 }
 
-static void help(void)
+static ATCA_STATUS help(void)
 {
     uint8_t index = 0;
 
@@ -228,23 +228,25 @@ static void help(void)
         printf("%s - %s\r\n", mas_menu_info[index].menu_cmd, mas_menu_info[index].menu_cmd_description);
         index++;
     }
+
+    return ATCA_SUCCESS;
 }
 
-static void select_204(void)
+static ATCA_STATUS select_204(void)
 {
-    select_device(ATSHA204A);
+    return select_device(ATSHA204A);
 }
-static void select_108(void)
+static ATCA_STATUS select_108(void)
 {
-    select_device(ATECC108A);
+    return select_device(ATECC108A);
 }
-static void select_508(void)
+static ATCA_STATUS select_508(void)
 {
-    select_device(ATECC508A);
+    return select_device(ATECC508A);
 }
-static void select_608(void)
+static ATCA_STATUS select_608(void)
 {
-    select_device(ATECC608A);
+    return select_device(ATECC608A);
 }
 
 static void update_chip_mode(uint8_t* chip_mode, uint8_t i2c_user_extra_add, uint8_t ttl_enable, uint8_t watchdog, uint8_t clock_divider)
@@ -309,29 +311,39 @@ static ATCA_STATUS check_clock_divider(void)
     return status;
 }
 
-static void run_basic_tests(void)
+static ATCA_STATUS run_basic_tests(void)
 {
     if (gCfg->devtype == ATECC608A)
         check_clock_divider();
-    run_test(RunAllBasicTests);
+    if (run_test(RunAllBasicTests) == 0)
+        return ATCA_SUCCESS;
+    return ATCA_GEN_FAIL;
 }
 
-static void run_unit_tests(void)
+static ATCA_STATUS run_unit_tests(void)
 {
     if (gCfg->devtype == ATECC608A)
         check_clock_divider();
-    run_test(RunAllFeatureTests);
-}
-static void run_otpzero_tests(void)
-{
-    run_test(RunBasicOtpZero);
-}
-static void run_helper_tests(void)
-{
-    run_test(RunAllHelperTests);
+    if (run_test(RunAllFeatureTests) == 0)
+        return ATCA_SUCCESS;
+    return ATCA_GEN_FAIL;
 }
 
-static void read_config(void)
+static ATCA_STATUS run_otpzero_tests(void)
+{
+    if (run_test(RunBasicOtpZero) == 0)
+        return ATCA_SUCCESS;
+    return ATCA_GEN_FAIL;
+}
+
+static ATCA_STATUS run_helper_tests(void)
+{
+    if (run_test(RunAllHelperTests) == 0)
+        return ATCA_SUCCESS;
+    return ATCA_GEN_FAIL;
+}
+
+static ATCA_STATUS read_config(void)
 {
     ATCA_STATUS status;
     uint8_t config[ATCA_ECC_CONFIG_SIZE];
@@ -342,7 +354,7 @@ static void read_config(void)
     if (status != ATCA_SUCCESS)
     {
         printf("atcab_init() failed: %02x\r\n", status);
-        return;
+        return status;
     }
 
     do
@@ -382,6 +394,8 @@ static void read_config(void)
     while (0);
 
     atcab_release();
+
+    return status;
 }
 
 static ATCA_STATUS lock_status(void)
@@ -406,16 +420,28 @@ static ATCA_STATUS lock_status(void)
     return status;
 }
 
-static void lock_config(void)
+static ATCA_STATUS lock_config(void)
 {
-    lock_config_zone();
-    lock_status();
+    ATCA_STATUS status;
+
+    status = lock_config_zone();
+    if (status == ATCA_SUCCESS) {
+        status = lock_status();
+    }
+
+    return status;
 }
 
-static void lock_data(void)
+static ATCA_STATUS lock_data(void)
 {
-    lock_data_zone();
-    lock_status();
+    ATCA_STATUS status;
+
+    status = lock_data_zone();
+    if (status == ATCA_SUCCESS) {
+        status = lock_status();
+    }
+
+    return status;
 }
 
 static ATCA_STATUS do_randoms(void)
@@ -453,7 +479,7 @@ static ATCA_STATUS do_randoms(void)
 
     return status;
 }
-static void discover(void)
+static ATCA_STATUS discover(void)
 {
     ATCAIfaceCfg ifaceCfgs[10];
     int i;
@@ -483,8 +509,11 @@ static void discover(void)
             printf("\r\n");
         }
     }
+
+    return ATCA_SUCCESS;
 }
-static void info(void)
+
+static ATCA_STATUS info(void)
 {
     ATCA_STATUS status;
     uint8_t revision[4];
@@ -498,9 +527,11 @@ static void info(void)
         atcab_bin2hex(revision, 4, displaystr, &displaylen);
         printf("revision:\r\n%s\r\n", displaystr);
     }
+
+    return status;
 }
 
-static void sernum(void)
+static ATCA_STATUS sernum(void)
 {
     ATCA_STATUS status;
     uint8_t serialnum[ATCA_SERIAL_NUM_SIZE];
@@ -514,11 +545,13 @@ static void sernum(void)
         atcab_bin2hex(serialnum, ATCA_SERIAL_NUM_SIZE, displaystr, &displaylen);
         printf("serial number:\r\n%s\r\n", displaystr);
     }
+
+    return status;
 }
 
 #ifdef TEST_CD
 void RunAllCertDataTests(void);
-static int certdata_unit_tests(void)
+static ATCA_STATUS certdata_unit_tests(void)
 {
     UnityMain(sizeof(argv) / sizeof(char*), argv, RunAllCertDataTests);
     return ATCA_SUCCESS;
@@ -527,7 +560,7 @@ static int certdata_unit_tests(void)
 
 #ifdef TEST_CIO
 void RunAllCertIOTests(void);
-static int certio_unit_tests(void)
+static ATCA_STATUS certio_unit_tests(void)
 {
     UnityMain(sizeof(argv) / sizeof(char*), argv, RunAllCertIOTests);
     return ATCA_SUCCESS;
@@ -634,7 +667,7 @@ static ATCA_STATUS get_serial_no(uint8_t *sernum)
     return status;
 }
 
-static void select_device(ATCADeviceType device_type)
+static ATCA_STATUS select_device(ATCADeviceType device_type)
 {
     ATCA_STATUS status;
 
@@ -648,6 +681,8 @@ static void select_device(ATCADeviceType device_type)
     {
         printf("IFace Cfg are NOT available\r\n");
     }
+
+    return status;
 }
 
 static int run_test(void* fptest)
@@ -663,7 +698,7 @@ static int run_test(void* fptest)
     }
 }
 
-static void run_all_tests(void)
+static ATCA_STATUS run_all_tests(void)
 {
     ATCA_STATUS status;
     bool is_config_locked = false;
@@ -677,20 +712,20 @@ static void run_all_tests(void)
     if (status != ATCA_SUCCESS)
     {
         printf("is_device_locked() failed with ret=0x%08X\r\n", status);
-        return;
+        return status;
     }
     status = is_device_locked(LOCK_ZONE_DATA, &is_data_locked);
     if (status != ATCA_SUCCESS)
     {
         printf("is_device_locked() failed with ret=0x%08X\r\n", status);
-        return;
+        return status;
     }
 
     status = lock_status();
     if (status != ATCA_SUCCESS)
     {
         printf("lock_status() failed with ret=0x%08X\r\n", status);
-        return;
+        return status;
     }
 
     if (!is_config_locked)
@@ -699,27 +734,27 @@ static void run_all_tests(void)
         if (fails > 0)
         {
             printf("unit tests with config zone unlocked failed.\r\n");
-            return;
+            return ATCA_GEN_FAIL;
         }
 
         fails += run_test(RunAllBasicTests);
         if (fails > 0)
         {
             printf("basic tests with config zone unlocked failed.\r\n");
-            return;
+            return ATCA_GEN_FAIL;
         }
 
         status = lock_config_zone();
         if (status != ATCA_SUCCESS)
         {
             printf("lock_config_zone() failed with ret=0x%08X\r\n", status);
-            return;
+            return status;
         }
         status = lock_status();
         if (status != ATCA_SUCCESS)
         {
             printf("lock_status() failed with ret=0x%08X\r\n", status);
-            return;
+            return status;
         }
     }
 
@@ -729,27 +764,27 @@ static void run_all_tests(void)
         if (fails > 0)
         {
             printf("unit tests with data zone unlocked failed.\r\n");
-            return;
+            return ATCA_GEN_FAIL;
         }
 
         fails += run_test(RunAllBasicTests);
         if (fails > 0)
         {
             printf("basic tests with data zone unlocked failed.\r\n");
-            return;
+            return ATCA_GEN_FAIL;
         }
 
         status = lock_data_zone();
         if (status != ATCA_SUCCESS)
         {
             printf("lock_data_zone() failed with ret=0x%08X\r\n", status);
-            return;
+            return status;
         }
         status = lock_status();
         if (status != ATCA_SUCCESS)
         {
             printf("lock_status() failed with ret=0x%08X\r\n", status);
-            return;
+            return status;
         }
     }
 
@@ -757,21 +792,21 @@ static void run_all_tests(void)
     if (fails > 0)
     {
         printf("unit tests with data zone locked failed.\r\n");
-        return;
+        return ATCA_GEN_FAIL;
     }
 
     fails += run_test(RunAllBasicTests);
     if (fails > 0)
     {
         printf("basic tests with data zone locked failed.\r\n");
-        return;
+        return ATCA_GEN_FAIL;
     }
 
     fails = run_test(RunAllHelperTests);
     if (fails > 0)
     {
         printf("util tests failed.\r\n");
-        return;
+        return ATCA_GEN_FAIL;
     }
 
 #ifdef TEST_SW_CRYPTO
@@ -779,7 +814,7 @@ static void run_all_tests(void)
     if (fails > 0)
     {
         printf("crypto tests failed.\r\n");
-        return;
+        return ATCA_GEN_FAIL;
     }
 #endif
 #ifdef TEST_CIO
@@ -789,7 +824,7 @@ static void run_all_tests(void)
         if (fails > 0)
         {
             printf("cio tests failed.\r\n");
-            return;
+            return ATCA_GEN_FAIL;
         }
     }
     else
@@ -802,11 +837,13 @@ static void run_all_tests(void)
     if (fails > 0)
     {
         printf("cd tests failed.\r\n");
-        return;
+        return ATCA_GEN_FAIL;
     }
 #endif
 
     printf("All unit tests passed.\r\n");
+
+    return ATCA_SUCCESS;
 }
 
 static ATCA_STATUS set_test_config(ATCADeviceType deviceType)
@@ -987,25 +1024,29 @@ static ATCA_STATUS set_chip_mode(uint8_t i2c_user_extra_add, uint8_t ttl_enable,
     return status;
 }
 
-static void set_clock_divider_m0(void)
+static ATCA_STATUS set_clock_divider_m0(void)
 {
     ATCA_STATUS status = set_chip_mode(0xFF, 0xFF, ATCA_CHIPMODE_WATCHDOG_SHORT, ATCA_CHIPMODE_CLOCK_DIV_M0);
     if (status == ATCA_SUCCESS)
     {
         printf("Set device to clock divider M0 (0x%02X) and watchdog to 1.3s nominal.\r\n", ATCA_CHIPMODE_CLOCK_DIV_M0 >> 3);
     }
+
+    return status;
 }
 
-static void set_clock_divider_m1(void)
+static ATCA_STATUS set_clock_divider_m1(void)
 {
     ATCA_STATUS status = set_chip_mode(0xFF, 0xFF, ATCA_CHIPMODE_WATCHDOG_SHORT, ATCA_CHIPMODE_CLOCK_DIV_M1);
     if (status == ATCA_SUCCESS)
     {
         printf("Set device to clock divider M1 (0x%02X) and watchdog to 1.3s nominal.\r\n", ATCA_CHIPMODE_CLOCK_DIV_M1 >> 3);
     }
+
+    return status;
 }
 
-static void set_clock_divider_m2(void)
+static ATCA_STATUS set_clock_divider_m2(void)
 {
     // Additionally set watchdog to long settings (~13s) as some commands
     // can't complete in time on the faster watchdog setting.
@@ -1014,4 +1055,6 @@ static void set_clock_divider_m2(void)
     {
         printf("Set device to clock divider M2 (0x%02X) and watchdog to 13s nominal.\r\n", ATCA_CHIPMODE_CLOCK_DIV_M2 >> 3);
     }
+
+    return status;
 }
