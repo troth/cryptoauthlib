@@ -52,7 +52,7 @@ endif
 endif
 
 ifeq ($(uname_S),Linux)
-CFLAGS += -g -O1 -m64 -Wall -Werror -fPIC $(addprefix -D,$(OPTIONS))
+CFLAGS += -g -O1 -Wall -Werror -fPIC $(addprefix -D,$(OPTIONS))
 TARGET_ARCH := Linux
 endif
 #    ifeq ($(uname_S),Darwin)
@@ -149,11 +149,12 @@ $(OUTDIR)/libcryptoauth.a: $(LIBCRYPTOAUTH_OBJECTS) | $(OUTDIR)
 	-@echo "AR $@"
 	$(Q)$(AR) $(ARFLAGS) $@ $(LIBCRYPTOAUTH_OBJECTS)
 
-$(OUTDIR)/libateccssl.so: $(LIBATECCSSL_OBJECTS) $(LIBCRYPTOAUTH_OBJECTS) | $(OUTDIR)
+$(OUTDIR)/libateccssl.so.1: $(LIBATECCSSL_OBJECTS) $(LIBCRYPTOAUTH_OBJECTS) | $(OUTDIR)
 	-@echo "LD $@"
-	$(Q)$(LD) -dll -shared $(LIBATECCSSL_OBJECTS) $(LIBCRYPTOAUTH_OBJECTS) -o $@ -lcrypto -lrt
+	$(Q)$(CC) -shared -Wl,-soname,libateccssl.so.1 -o $@ $(LIBATECCSSL_OBJECTS) $(LIBCRYPTOAUTH_OBJECTS) -lcrypto -lrt
+	$(Q)ln -s libateccssl.so.1 $(OUTDIR)/libateccssl.so
 
-$(OUTDIR)/test: $(OUTDIR)/libateccssl.so $(TEST_OBJECTS) | $(OUTDIR)
+$(OUTDIR)/test: $(OUTDIR)/libateccssl.so.1 $(TEST_OBJECTS) | $(OUTDIR)
 	-@echo "LINK $@"
 	$(Q)$(CC) -o $@ $(TEST_OBJECTS) -L$(OUTDIR) -lateccssl -lcrypto -lssl
 
@@ -161,7 +162,7 @@ include $(wildcard $(patsubst %,$(OUTDIR)/%.d,$(basename $(SOURCES))))
 
 libpkcs11: $(LIBPKCS11_OBJECTS) | $(OUTDIR)
 
-libateccssl: $(OUTDIR)/libateccssl.so | $(OUTDIR)
+libateccssl: $(OUTDIR)/libateccssl.so.1 | $(OUTDIR)
 
 libcryptoauth: $(OUTDIR)/libcryptoauth.a | $(OUTDIR)
 
