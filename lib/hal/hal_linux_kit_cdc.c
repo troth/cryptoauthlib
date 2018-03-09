@@ -41,6 +41,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
 
 /** \defgroup hal_ Hardware abstraction layer (hal_)
  *
@@ -133,7 +134,7 @@ ATCA_STATUS hal_kit_cdc_init(void* hal, ATCAIfaceCfg* cfg)
     // todo: perform an actual discovery here...
     if ( (fd = open(dev, O_RDWR | O_NOCTTY)) < 0)
     {
-        printf("Failed to open %s ret:%02X\n", dev, fd);
+        fprintf(stderr, "Failed to open %s ret:%02X: %s\n", dev, fd, strerror(errno));
         return ATCA_COMM_FAIL;
     }
     index++;
@@ -223,6 +224,11 @@ ATCA_STATUS kit_phy_send(ATCAIface iface, const char* txdata, int txlength)
 
     // Write the bytes to the specified com port
     bytesWritten = write(pCdc->kits[cdcid].write_handle, txdata, txlength);
+    if (bytesWritten < 0)
+    {
+        fprintf(stderr, "kit_phy_send() failed write(): %s\n", strerror(errno));
+        return ATCA_GEN_FAIL;
+    }
 
     return status;
 }
@@ -265,6 +271,10 @@ ATCA_STATUS kit_phy_receive(ATCAIface iface, char* rxdata, int* rxsize)
         while (continue_read == true)
         {
             bytes_read = read(pCdc->kits[cdcid].read_handle, buffer, CDC_BUFFER_MAX);
+            if (bytes_read < 0)
+            {
+                fprintf(stderr, "kit_phy_receive() failed read(): %s\n", strerror(errno));
+            }
 
             // Find the location of the '\n' character in read buffer
             // todo: generalize this read...  it only applies if there is an ascii protocol with an <eom> of \n and if the <eom> exists
