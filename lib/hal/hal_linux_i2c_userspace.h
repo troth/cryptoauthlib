@@ -39,7 +39,9 @@
  *
    @{ */
 
+#ifndef MAX_I2C_BUSES
 #define MAX_I2C_BUSES   2   // Raspberry Pi has 2 TWI
+#endif
 
 #define MAX_I2C_DEV_FILENAME_SZ 16
 
