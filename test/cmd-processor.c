@@ -156,12 +156,6 @@ int main(int argc, char* argv[])
     char buffer[1024];
     size_t bufsize = sizeof(buffer);
 
-    if (!buffer)
-    {
-        fprintf(stderr, "Failed to allocated a buffer");
-        return 1;
-    }
-
     while (true)
     {
         printf("$ ");
