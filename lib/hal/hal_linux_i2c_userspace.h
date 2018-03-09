@@ -41,10 +41,12 @@
 
 #define MAX_I2C_BUSES   2   // Raspberry Pi has 2 TWI
 
+#define MAX_I2C_DEV_FILENAME_SZ 16
+
 // A structure to hold I2C information
 typedef struct atcaI2Cmaster
 {
-    char i2c_file[16];
+    char i2c_file[MAX_I2C_DEV_FILENAME_SZ];
     int  ref_ct;
     // for conveniences during interface release phase
     int bus_index;
