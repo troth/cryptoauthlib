@@ -32,7 +32,6 @@
 #include "atca_test.h"
 #include "basic/atca_basic.h"
 #include "host/atca_host.h"
-#include "test/atca_tests.h"
 
 
 #define ATCA_TESTS_HELPER_DEVICES   ( DEVICE_MASK(ATSHA204A) | DEVICE_MASK(ATECC108A) | DEVICE_MASK(ATECC508A) | DEVICE_MASK(ATECC608A) )
