@@ -101,6 +101,7 @@ static ATCA_STATUS run_unit_tests(void);
 static ATCA_STATUS run_otpzero_tests(void);
 static ATCA_STATUS run_helper_tests(void);
 static ATCA_STATUS help(void);
+static ATCA_STATUS quit(void);
 static int parse_cmd(const char *command);
 static ATCA_STATUS run_all_tests(void);
 static ATCA_STATUS set_chip_mode(uint8_t i2c_user_extra_add, uint8_t ttl_enable, uint8_t watchdog, uint8_t clock_divider);
@@ -112,6 +113,7 @@ static const char* argv[] = { "manual", "-v" };
 static t_menu_info mas_menu_info[] =
 {
     { "help",     "Display Menu",                                   help                                },
+    { "quit",     "Quit test application",                          quit                                },
     { "discover", "Discover Buses and Devices",                     discover                            },
     { "204",      "Set Target Device to ATECC204A",                 select_204                          },
     { "108",      "Set Target Device to ATECC108A",                 select_108                          },
@@ -229,6 +231,12 @@ static ATCA_STATUS help(void)
         index++;
     }
 
+    return ATCA_SUCCESS;
+}
+
+static ATCA_STATUS quit(void)
+{
+    exit(0);
     return ATCA_SUCCESS;
 }
 
