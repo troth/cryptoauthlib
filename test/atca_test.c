@@ -237,40 +237,6 @@ void RunAllHelperTests(void)
     RunAllTests(helper_tests);
 }
 
-static int atcau_get_addr(uint8_t zone, uint8_t slot, uint8_t block, uint8_t offset, uint16_t* addr)
-{
-    ATCA_STATUS status = ATCA_SUCCESS;
-
-    if (addr == NULL)
-    {
-        return ATCA_BAD_PARAM;
-    }
-    if (zone != ATCA_ZONE_CONFIG && zone != ATCA_ZONE_DATA && zone != ATCA_ZONE_OTP)
-    {
-        return ATCA_BAD_PARAM;;
-    }
-    *addr = 0;
-    offset = offset & (uint8_t)0x07;
-
-    if ((zone == ATCA_ZONE_CONFIG) || (zone == ATCA_ZONE_OTP))
-    {
-        *addr = block << 3;
-        *addr |= offset;
-    }
-    else if (zone == ATCA_ZONE_DATA)
-    {
-        *addr = slot << 3;
-        *addr |= offset;
-        *addr |= block << 8;
-    }
-    else
-    {
-        status = ATCA_BAD_PARAM;
-    }
-    return status;
-}
-
-
 static bool atcau_is_locked(uint8_t zone)
 {
     ATCA_STATUS status = ATCA_GEN_FAIL;
