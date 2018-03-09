@@ -87,18 +87,6 @@ typedef struct
 ATCA_STATUS device_init_default(void);
 ATCA_STATUS device_init(const atcacert_def_t* cert_def_signer, const atcacert_def_t* cert_def_device);
 
-static int build_and_save_cert(
-    const atcacert_def_t*    cert_def,
-    uint8_t*                 cert,
-    size_t*                  cert_size,
-    const uint8_t            ca_public_key[64],
-    const uint8_t            public_key[64],
-    const uint8_t            signer_id[2],
-    const atcacert_tm_utc_t* issue_date,
-    const uint8_t            config32[32],
-    uint8_t                  ca_slot);
-
-
 //////////////////////////////////////////////////////////////////////////
 // I2C address for device communication
 #define FACTORY_INIT_I2C    (uint8_t)(0xC0)     // Initial I2C address is set to 0xC0 in the factory
