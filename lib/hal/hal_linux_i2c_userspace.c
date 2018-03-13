@@ -58,15 +58,28 @@ int i2c_bus_ref_ct = 0;                       // total in-use count across buses
 
 /** \brief discover i2c buses available for this hardware
  * this maintains a list of logical to physical bus mappings freeing the application
- * of the a-priori knowledge.This function is not implemented.
+ * of the a-priori knowledge.
  * \param[in] i2c_buses - an array of logical bus numbers
  * \param[in] max_buses - maximum number of buses the app wants to attempt to discover
- * \return ATCA_UNIMPLEMENTED
+ * \return ATCA_SUCCESS
  */
 
 ATCA_STATUS hal_i2c_discover_buses(int i2c_buses[], int max_buses)
 {
-    return ATCA_UNIMPLEMENTED;
+    int i;
+    char fname[20];
+
+    for (i=0; i<max_buses; i++)
+    {
+        snprintf(fname, sizeof(fname), "/dev/i2c-%d", i);
+        if (access(fname, R_OK|W_OK) == 0) {
+            i2c_buses[i] = i;
+        } else {
+            fprintf(stderr, "No access('%s'): %s\n", fname, strerror(errno));
+        }
+    }
+
+    return ATCA_SUCCESS;
 }
 
 /** \brief discover any CryptoAuth devices on a given logical bus number
