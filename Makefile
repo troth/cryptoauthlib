@@ -14,7 +14,24 @@ else
   endif
 endif
 
-OPTIONS := ATCAPRINTF ATCA_HAL_KIT_CDC ENGINE_DYNAMIC_SUPPORT USE_ECCX08 ECC_DEBUG
+OPTIONS := ATCAPRINTF
+OPTIONS += ENGINE_DYNAMIC_SUPPORT
+OPTIONS += USE_ECCX08
+OPTIONS += ECC_DEBUG
+
+#
+# Pick one of the following:
+#
+OPTIONS += ATCA_HAL_I2C
+#OPTIONS += ATCA_HAL_SWI
+#OPTIONS += ATCA_HAL_SPI
+#OPTIONS += ATCA_HAL_UART
+#OPTIONS += ATCA_HAL_KIT_HID
+#OPTIONS += ATCA_HAL_KIT_CDC
+
+OPTIONS += MAX_I2C_BUSES=4
+
+TARGET_HAL ?= I2C
 
 SYSTEM_INCLUDES := /usr/include
 
@@ -129,6 +146,9 @@ CFLAGS += $(addprefix -I, $(INCLUDE) $(TEST_INCLUDE) $(SYSTEM_INCLUDES))
 # Regardless of platform set the vpath correctly
 vpath %.c $(call BACK2SLASH,$(sort $(dir $(SOURCES) $(TEST_SOURCES))))
 
+$(info TARGET_ARCH=$(TARGET_ARCH))
+$(info TARGET_HAL=$(TARGET_HAL))
+
 #all: $(LIBCRYPTOAUTH_OBJECTS) $(LIBATECCSSL_OBJECTS) $(LIBPKCS11_OBJECTS) | $(OUTDIR)
 all: libpkcs11 libateccssl libcryptoauth | $(OUTDIR)
 
@@ -152,6 +172,7 @@ $(OUTDIR)/libcryptoauth.a: $(LIBCRYPTOAUTH_OBJECTS) | $(OUTDIR)
 $(OUTDIR)/libateccssl.so.1: $(LIBATECCSSL_OBJECTS) $(LIBCRYPTOAUTH_OBJECTS) | $(OUTDIR)
 	-@echo "LD $@"
 	$(Q)$(CC) -shared -Wl,-soname,libateccssl.so.1 -o $@ $(LIBATECCSSL_OBJECTS) $(LIBCRYPTOAUTH_OBJECTS) -lcrypto -lrt
+	-$(Q)rm -f $(OUTDIR)/libateccssl.so
 	$(Q)ln -s libateccssl.so.1 $(OUTDIR)/libateccssl.so
 
 $(OUTDIR)/test: $(OUTDIR)/libateccssl.so.1 $(TEST_OBJECTS) | $(OUTDIR)
