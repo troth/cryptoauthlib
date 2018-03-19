@@ -85,11 +85,6 @@ ATCA_STATUS hal_i2c_discover_devices(int busNum, ATCAIfaceCfg cfg[], int *found)
     ATCACommand command;
     ATCAPacket packet;
     ATCA_STATUS status;
-    uint8_t revs508[1][4] = { { 0x00, 0x00, 0x50, 0x00 } };
-    uint8_t revs108[1][4] = { { 0x80, 0x00, 0x10, 0x01 } };
-    uint8_t revs204[3][4] = { { 0x00, 0x02, 0x00, 0x08 },
-                              { 0x00, 0x02, 0x00, 0x09 },
-                              { 0x00, 0x04, 0x05, 0x00 } };
     int i;
 
     /** \brief default configuration, to be reused during discovery process */
@@ -158,32 +153,7 @@ ATCA_STATUS hal_i2c_discover_devices(int busNum, ATCAIfaceCfg cfg[], int *found)
             }
 
             // determine device type from common info and dev rev response byte strings
-            for (i = 0; i < (int)sizeof(revs508) / 4; i++)
-            {
-                if (memcmp(&packet.data[1], &revs508[i], 4) == 0)
-                {
-                    discoverCfg.devtype = ATECC508A;
-                    break;
-                }
-            }
-
-            for (i = 0; i < (int)sizeof(revs204) / 4; i++)
-            {
-                if (memcmp(&packet.data[1], &revs204[i], 4) == 0)
-                {
-                    discoverCfg.devtype = ATSHA204A;
-                    break;
-                }
-            }
-
-            for (i = 0; i < (int)sizeof(revs108) / 4; i++)
-            {
-                if (memcmp(&packet.data[1], &revs108[i], 4) == 0)
-                {
-                    discoverCfg.devtype = ATECC108A;
-                    break;
-                }
-            }
+            discoverCfg.devtype = atca-get_devtype(&packet.data[1]);
 
             atca_delay_ms(15);
             // now the device type is known, so update the caller's cfg array element with it

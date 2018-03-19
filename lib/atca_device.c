@@ -30,6 +30,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include "atca_device.h"
 
 /** \defgroup device ATCADevice (atca_)
@@ -98,6 +99,47 @@ void deleteATCADevice(ATCADevice *ca_dev)   // destructor
     }
 
     *ca_dev = NULL;
+}
+
+struct DevRevEntry {
+    ATCADeviceType devtype;
+    uint8_t devrev[4];
+};
+
+static struct DevRevEntry devRevTable[] = {
+    { .devtype = ATECC608A, .devrev = { 0x00, 0x00, 0x60, 0x01 } },
+    { .devtype = ATECC508A, .devrev = { 0x00, 0x00, 0x50, 0x00 } },
+    { .devtype = ATECC108A, .devrev = { 0x80, 0x00, 0x10, 0x01 } },
+    { .devtype = ATSHA204A, .devrev = { 0x00, 0x02, 0x00, 0x08 } },
+    { .devtype = ATSHA204A, .devrev = { 0x00, 0x02, 0x00, 0x09 } },
+    { .devtype = ATSHA204A, .devrev = { 0x00, 0x04, 0x05, 0x00 } },
+    { .devtype = ATCA_DEV_UNKNOWN },
+};
+
+/** \brief Determine the device type by examining the Device Revision data
+ * read from the device using the Info command.
+ *
+ * \param[in] devrev_data  Pointer to 4 byte array of data read from device
+ *                         using Info command.
+ *
+ * \return Returns a value from the ATCADeviceType enum ATCA_DEV_UNKNOWN
+ *         if device was not found in the lookup table.
+ */
+ATCADeviceType atGetDeviceType(const char *devrev_data)
+{
+    struct DevRevEntry *dre = devRevTable;
+
+    ATCADeviceType devtype = ATCA_DEV_UNKNOWN;
+
+    while (dre->devtype != ATCA_DEV_UNKNOWN)
+    {
+        if (memcmp(devrev_data, dre->devrev, 4) == 0)
+        {
+            devtype = dre->devtype;
+            break;
+        }
+    }
+    return devtype;
 }
 
 /** @} */

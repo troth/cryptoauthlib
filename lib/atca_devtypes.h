@@ -51,6 +51,8 @@ typedef enum
     ATCA_DEV_UNKNOWN = 0x20
 } ATCADeviceType;
 
+ATCADeviceType atGetDeviceType(const char *devrev_data);
+
 #ifdef __cplusplus
 }
 #endif
